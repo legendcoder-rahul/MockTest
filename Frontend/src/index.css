@@ -1,0 +1,343 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+/*
+ ---break---
+ */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ExamAI Design System — "Institutional Intelligence"
+ * Based on Stitch M3 tokens, mapped to shadcn/ui CSS variable conventions.
+ * Fonts: Poppins (headlines) + Inter (body/labels)
+ */
+
+@theme inline {
+  /* ── shadcn/ui compatible color tokens (HSL via oklch fallback) ── */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+
+  /* ── Stitch M3 semantic color tokens ── */
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-on-error: var(--on-error);
+  --color-on-error-container: var(--on-error-container);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-inverse-primary: var(--inverse-primary);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+
+  /* ── Layout ── */
+  --container-max: 1280px;
+
+  /* ── Border Radius (shadcn convention) ── */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Typography ── */
+  --font-heading: var(--font-sans);
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME (default) — Stitch "Institutional Intelligence"
+   ═══════════════════════════════════════════════════════ */
+:root {
+  /* ── shadcn base tokens (Stitch hex values) ── */
+  --background: #faf9fe;
+  --foreground: #1a1b1f;
+  --card: #ffffff;
+  --card-foreground: #1a1b1f;
+  --popover: #ffffff;
+  --popover-foreground: #1a1b1f;
+  --primary: #002451;
+  --primary-foreground: #ffffff;
+  --secondary: #835500;
+  --secondary-foreground: #ffffff;
+  --muted: #eeedf2;
+  --muted-foreground: #43474f;
+  --accent: #e9e7ec;
+  --accent-foreground: #1a1b1f;
+  --destructive: #ba1a1a;
+  --destructive-foreground: #ffffff;
+  --success: #004520;
+  --success-foreground: #39bb6c;
+  --warning: #835500;
+  --warning-foreground: #feae2c;
+  --border: #c4c6d0;
+  --input: #c4c6d0;
+  --ring: #002451;
+
+  /* ── M3 surface system ── */
+  --surface: #faf9fe;
+  --surface-dim: #dad9de;
+  --surface-bright: #faf9fe;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f4f3f8;
+  --surface-container: #eeedf2;
+  --surface-container-high: #e9e7ec;
+  --surface-container-highest: #e3e2e7;
+  --on-surface: #1a1b1f;
+  --on-surface-variant: #43474f;
+  --inverse-surface: #2f3034;
+  --inverse-on-surface: #f1f0f5;
+  --inverse-primary: #abc7ff;
+
+  /* ── outline ── */
+  --outline: #747780;
+  --outline-variant: #c4c6d0;
+
+  /* ── primary ── */
+  --primary-container: #1a3a6b;
+  --on-primary-container: #89a5dd;
+
+  /* ── secondary (saffron) ── */
+  --secondary-container: #feae2c;
+  --on-secondary-container: #6b4500;
+
+  /* ── tertiary (success green) ── */
+  --tertiary: #002c13;
+  --tertiary-container: #004520;
+  --on-tertiary-container: #39bb6c;
+
+  /* ── error ── */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #93000a;
+
+  /* ── fixed ── */
+  --primary-fixed: #d7e2ff;
+  --primary-fixed-dim: #abc7ff;
+
+  /* ── sidebar ── */
+  --sidebar: #f4f3f8;
+  --sidebar-foreground: #1a1b1f;
+  --sidebar-accent: #e9e7ec;
+  --sidebar-accent-foreground: #002451;
+  --sidebar-border: #c4c6d0;
+  --chart-1: #002451;
+  --chart-2: #835500;
+  --chart-3: #002c13;
+  --chart-4: #ba1a1a;
+  --chart-5: #747780;
+  --radius: 0.5rem;
+  --sidebar-primary: #002451;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: #002451;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DARK THEME — Deep Institutional Dark Mode
+   ═══════════════════════════════════════════════════════ */
+.dark {
+  --background: #111318;
+  --foreground: #e3e2e7;
+  --card: #1c1d22;
+  --card-foreground: #e3e2e7;
+  --popover: #1c1d22;
+  --popover-foreground: #e3e2e7;
+  --primary: #abc7ff;
+  --primary-foreground: #002451;
+  --secondary: #ffb955;
+  --secondary-foreground: #291800;
+  --muted: #2a2b30;
+  --muted-foreground: #a0a1a9;
+  --accent: #35363b;
+  --accent-foreground: #e3e2e7;
+  --destructive: #ffb4ab;
+  --destructive-foreground: #690005;
+  --success: #61de8a;
+  --success-foreground: #003916;
+  --warning: #ffb955;
+  --warning-foreground: #462a00;
+  --border: #43474f;
+  --input: #43474f;
+  --ring: #abc7ff;
+
+  /* ── M3 surfaces (dark) ── */
+  --surface: #111318;
+  --surface-dim: #111318;
+  --surface-bright: #37383d;
+  --surface-container-lowest: #0c0e13;
+  --surface-container-low: #1a1b1f;
+  --surface-container: #1e1f24;
+  --surface-container-high: #28292e;
+  --surface-container-highest: #333439;
+  --on-surface: #e3e2e7;
+  --on-surface-variant: #c4c6d0;
+  --inverse-surface: #e3e2e7;
+  --inverse-on-surface: #2f3034;
+  --inverse-primary: #002451;
+
+  --outline: #8e9099;
+  --outline-variant: #43474f;
+
+  --primary-container: #284678;
+  --on-primary-container: #d7e2ff;
+
+  --secondary-container: #633f00;
+  --on-secondary-container: #ffddb4;
+
+  --tertiary: #61de8a;
+  --tertiary-container: #005228;
+  --on-tertiary-container: #7efba4;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+  --on-error-container: #ffdad6;
+
+  --primary-fixed: #d7e2ff;
+  --primary-fixed-dim: #abc7ff;
+
+  --sidebar: #1a1b1f;
+  --sidebar-foreground: #e3e2e7;
+  --sidebar-accent: #28292e;
+  --sidebar-accent-foreground: #abc7ff;
+  --sidebar-border: #43474f;
+  --chart-1: #abc7ff;
+  --chart-2: #ffb955;
+  --chart-3: #61de8a;
+  --chart-4: #ffb4ab;
+  --chart-5: #8e9099;
+  --sidebar-primary: #abc7ff;
+  --sidebar-primary-foreground: #002451;
+  --sidebar-ring: #abc7ff;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════ */
+@layer base {
+  * {
+    border-color: var(--border);
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════ */
+@layer utilities {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .material-symbols-outlined.fill {
+    font-variation-settings: 'FILL' 1;
+  }
+}
+
+/* ── Animations ── */
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animation-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background-size: 200% 100%;
+}
+
+/* ── Scrollbar Hide ── */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Focus visible ring (shadcn pattern) ── */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+}
