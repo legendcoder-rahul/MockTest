@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { updateTargetExam, logout } from "../../auth/state/authSlice";
+import { updateTargetExam, logoutUserAsync } from "../../auth/state/authSlice";
 
 export const UserProfilePage = () => {
   const dispatch = useDispatch();
@@ -19,7 +19,7 @@ export const UserProfilePage = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUserAsync());
     navigate("/");
   };
 

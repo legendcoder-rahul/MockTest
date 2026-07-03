@@ -1,34 +1,125 @@
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
 export const authApi = {
   async login(email, password) {
-    await delay(500);
-    if (!email || !password) {
-      throw new Error("Email and password are required.");
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to log in.");
     }
-    // Mock user payload matching the Stitch styling specifications
+
     return {
-      name: email.split("@")[0] || "Rahul",
-      email,
-      targetExam: "SSC CGL",
+      name: data.user.username,
+      email: data.user.email,
+      mobile: data.user.contact,
+      targetExam: data.user.targetExam,
       daysLeft: 47,
       overallProgress: 34
     };
   },
 
   async register(name, email, mobile, targetExam, password) {
-    await delay(600);
-    if (!name || !email || !targetExam || !password) {
-      throw new Error("Please fill in all required registration fields.");
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        username: name,
+        email,
+        contact: mobile ? Number(mobile) : undefined,
+        targetExam,
+        password
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to register.");
     }
+
     return {
-      name,
-      email,
-      mobile,
-      targetExam,
+      name: data.user.username,
+      email: data.user.email,
+      mobile: data.user.contact,
+      targetExam: data.user.targetExam,
       daysLeft: 47,
       overallProgress: 0
     };
+  },
+
+  async getMe() {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Session expired.");
+    }
+
+    return {
+      name: data.user.username,
+      email: data.user.email,
+      mobile: data.user.contact,
+      targetExam: data.user.targetExam,
+      daysLeft: 47,
+      overallProgress: 34
+    };
+  },
+
+  async logout() {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to logout.");
+    }
+    return data;
+  },
+
+  async forgetPassword(email) {
+    const response = await fetch(`${API_BASE_URL}/auth/forget-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to request OTP.");
+    }
+    return data;
+  },
+
+  async resetPassword(email, otp, newPassword) {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to reset password.");
+    }
+    return data;
   }
 };
 

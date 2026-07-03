@@ -2,6 +2,7 @@ import userModel from '../models/user.model.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import redis from '../config/cache.js'
+import { sendMail } from '../service/mail.service.js'
 
 // Token expiry constants
 const ACCESS_TOKEN_EXPIRY = '15m'
@@ -148,6 +149,27 @@ export const refreshAccessToken = async (req, res) => {
     }
 }
 
+export const getMe = async (req, res) => {
+    try {
+        const user = await userModel.findById(req.user.id).select('-password')
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user._id,
+                email: user.email,
+                contact: user.contact,
+                username: user.username,
+                targetExam: user.targetExam
+            }
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const logout = async (req, res) => {
     const { accessToken, refreshToken } = req.cookies
 
@@ -178,4 +200,94 @@ export const logout = async (req, res) => {
     res.clearCookie('refreshToken')
 
     res.status(200).json({ message: 'user logged out successfully' })
+}
+
+export const resetpassword = async (req, res) => {
+    const { email } = req.body
+
+    if (!email) {
+        return res.status(400).json({ message: 'Email is required' })
+    }
+
+    const user = await userModel.findOne({ email })
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' })
+    }
+
+    const otp = Math.floor(1000 + Math.random() * 9000).toString()
+
+    // Store in Redis with 5 minutes (300 seconds) expiration
+    await redis.set(`otp:${email}`, otp, 'EX', 300)
+
+    try {
+        await sendMail({
+            to: email,
+            subject: 'Reset Password OTP - MockTest',
+            text: `Hi ${user.username}, your password reset OTP is ${otp}. It will expire in 5 minutes.`,
+            html: `
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 550px; margin: 0 auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <h2 style="color: #2563eb; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">ExamAI MockTest</h2>
+                    </div>
+                    <div style="border-top: 3px solid #2563eb; padding-top: 24px;">
+                        <p style="font-size: 16px; color: #1f2937; margin-bottom: 16px;">Hello <strong>${user.username}</strong>,</p>
+                        <p style="font-size: 15px; color: #4b5563; line-height: 1.5; margin-bottom: 24px;">We received a request to reset your password. Use the verification code below to complete the process. This code is valid for <strong>5 minutes</strong>.</p>
+                        
+                        <div style="background-color: #f3f4f6; border-radius: 8px; padding: 18px; text-align: center; margin: 24px 0;">
+                            <span style="font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #111827; font-family: monospace;">${otp}</span>
+                        </div>
+                        
+                        <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 24px;">If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
+                        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+                        <p style="font-size: 12px; color: #9ca3af; margin: 0; line-height: 1.5; text-align: center;">This is an automated email, please do not reply directly.<br>&copy; MockTest Team. All rights reserved.</p>
+                    </div>
+                </div>
+            `
+        })
+
+        res.status(201).json({
+            message: 'OTP send successfully',
+            success: true
+        })
+    } catch (error) {
+        console.error("Error sending OTP email:", error)
+        res.status(500).json({ message: 'Failed to send OTP email' })
+    }
+}
+
+export const verifyOtpAndResetPassword = async (req, res) => {
+    const { email, otp, newPassword } = req.body
+
+    if (!email || !otp || !newPassword) {
+        return res.status(400).json({ message: 'Email, OTP, and new password are required' })
+    }
+
+    const user = await userModel.findOne({ email })
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' })
+    }
+
+    const storedOtp = await redis.get(`otp:${email}`)
+
+    if (!storedOtp) {
+        return res.status(400).json({ message: 'OTP expired or not found' })
+    }
+
+    if (storedOtp !== otp) {
+        return res.status(400).json({ message: 'Invalid OTP' })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+    user.password = hashedPassword
+    await user.save()
+
+    await redis.del(`otp:${email}`)
+
+    res.status(200).json({
+        message: 'Password reset successfully',
+        success: true
+    })
 }

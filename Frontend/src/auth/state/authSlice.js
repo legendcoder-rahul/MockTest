@@ -26,21 +26,35 @@ export const registerUserAsync = createAsyncThunk(
   }
 );
 
-const initialState = {
-  isAuthenticated: true, // Default to true as per workspace mock flow
-  user: {
-    name: "Rahul",
-    targetExam: "SSC CGL",
-    daysLeft: 47,
-    overallProgress: 34,
-    syllabusProgress: {
-      quant: 34,
-      reasoning: 58,
-      english: 45,
-      general: 22
+export const logoutUserAsync = createAsyncThunk(
+  "auth/logoutUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      await authApi.logout();
+      return null;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to log out.");
     }
-  },
-  loading: false,
+  }
+);
+
+export const checkSessionAsync = createAsyncThunk(
+  "auth/checkSession",
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await authApi.getMe();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Session expired.");
+    }
+  }
+);
+
+const initialState = {
+  isAuthenticated: false,
+  user: null,
+  loading: true, // Start as true so we check session on load without flash of login page
+  sessionChecked: false,
   error: null
 };
 
@@ -52,6 +66,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.user = null;
       state.error = null;
+      state.sessionChecked = true;
     },
     updateTargetExam(state, action) {
       if (state.user) {
@@ -112,6 +127,49 @@ const authSlice = createSlice({
       })
       .addCase(registerUserAsync.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      // Check session flow
+      .addCase(checkSessionAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkSessionAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.sessionChecked = true;
+        state.user = {
+          name: action.payload.name || "Rahul",
+          targetExam: action.payload.targetExam || "SSC CGL",
+          daysLeft: 47,
+          overallProgress: 34,
+          syllabusProgress: {
+            quant: 34,
+            reasoning: 58,
+            english: 45,
+            general: 22
+          }
+        };
+      })
+      .addCase(checkSessionAsync.rejected, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.sessionChecked = true;
+        state.user = null;
+      })
+      // Logout flow
+      .addCase(logoutUserAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutUserAsync.fulfilled, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+      })
+      .addCase(logoutUserAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
         state.error = action.payload;
       });
   }

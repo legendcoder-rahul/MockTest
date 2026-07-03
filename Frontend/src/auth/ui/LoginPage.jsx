@@ -145,7 +145,7 @@ export const LoginPage = () => {
                 <input type="checkbox" className="rounded border-outline-variant text-primary focus:ring-primary" />
                 <span className="text-xs text-on-surface-variant font-medium">Remember me</span>
               </label>
-              <a className="text-xs text-primary hover:underline font-semibold" href="#">Forgot password?</a>
+              <Link className="text-xs text-primary hover:underline font-semibold" to="/forgot-password">Forgot password?</Link>
             </div>
 
             <button
