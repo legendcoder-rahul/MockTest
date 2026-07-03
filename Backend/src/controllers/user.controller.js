@@ -291,3 +291,39 @@ export const verifyOtpAndResetPassword = async (req, res) => {
         success: true
     })
 }
+
+export const googleCallback = async (req, res) => {
+    try {
+        const user = req.user
+        if (!user) {
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=GoogleAuthFailed`)
+        }
+
+        const accessToken = generateAccessToken(user._id)
+        const refreshToken = generateRefreshToken(user._id)
+
+        // Store refresh token in Redis for validation & revocation
+        await redis.set(
+            `refreshToken:${user._id}`,
+            refreshToken,
+            'EX',
+            REFRESH_TOKEN_REDIS_TTL
+        )
+
+        // Set httpOnly cookies
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            maxAge: ACCESS_COOKIE_MAX_AGE
+        })
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            maxAge: REFRESH_COOKIE_MAX_AGE
+        })
+
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173')
+    } catch (error) {
+        console.error("Error in googleCallback:", error)
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=ServerError`)
+    }
+}

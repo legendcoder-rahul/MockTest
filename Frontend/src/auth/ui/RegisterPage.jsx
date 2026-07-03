@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUserAsync, clearAuthError } from "../state/authSlice";
+import GoogleAuthButton from "../../components/GoogleAuthButton";
 
 export const RegisterPage = () => {
   const dispatch = useDispatch();
@@ -201,6 +202,14 @@ export const RegisterPage = () => {
                 <span>Create Account</span>
               )}
             </button>
+
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-outline-variant"></div>
+              <span className="flex-shrink mx-4 text-[11px] font-bold text-on-surface-variant/60 uppercase tracking-wider">or</span>
+              <div className="flex-grow border-t border-outline-variant"></div>
+            </div>
+
+            <GoogleAuthButton />
           </form>
 
           <div className="mt-6 text-center text-xs text-on-surface-variant">
