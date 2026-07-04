@@ -128,7 +128,7 @@ export const apiService = {
       ? Math.round((correctCount / (correctCount + incorrectCount)) * 1000) / 10 
       : 0;
 
-    return {
+    const result = {
       testId,
       testTitle: test.title,
       examType: test.examType,
@@ -142,6 +142,25 @@ export const apiService = {
       timeSpentSeconds,
       questionsAnalysis
     };
+
+    // Save to backend database
+    try {
+      const response = await fetch(`${API_BASE_URL}/submissions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(result),
+      });
+      if (!response.ok) {
+        console.error("Failed to save submission in backend database.");
+      }
+    } catch (err) {
+      console.error("Error connecting to submissions API:", err);
+    }
+
+    return result;
   },
 
   async fetchPYQPapers() {
@@ -150,35 +169,67 @@ export const apiService = {
   },
 
   async fetchUserStats() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/submissions/stats`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (response.ok) {
+        const resData = await response.json();
+        if (resData.success) {
+          return resData;
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to fetch stats from database, falling back to mock stats:", error);
+    }
+
     await delay(200);
-    return { ...mockUserStats };
+    return {
+      success: true,
+      user: {
+        username: mockUserStats.name,
+        targetExam: mockUserStats.targetExam,
+        daysLeft: mockUserStats.daysLeft,
+        overallProgress: mockUserStats.overallProgress
+      },
+      stats: mockUserStats.stats,
+      subjectAccuracy: mockUserStats.subjectAccuracy,
+      recentActivity: mockUserStats.recentActivity
+    };
   },
 
-  async sendMessageToTutor(questionId, message, chatHistory = []) {
-    await delay(600);
-    // Find pre-defined reply or default
-    const preReplies = mockAIReplies[questionId];
-    if (preReplies && chatHistory.length === 0) {
-      return preReplies;
-    }
+  async sendMessageToTutor(message, chatId = null, questionContext = null) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/chats/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ message, chatId, questionContext }),
+      });
 
-    // Default bot answers based on message content
-    let replyText = "That's an interesting question! Let's break it down. For this topic, we should consider that HCF divides the numbers while LCM is divisible by the numbers.";
-    if (message.toLowerCase().includes("hindi")) {
-      replyText = "बिल्कुल! HCF (महत्तम समापवर्तक) का मतलब है वह सबसे बड़ी संख्या जो दी गई सभी संख्याओं को विभाजित कर सके। इसके लिए हम न्यूनतम घात (lowest power) का चयन करते हैं।";
-    } else if (message.toLowerCase().includes("trick") || message.toLowerCase().includes("mnemonic")) {
-      replyText = "Here is the short trick: write down the prime factors. For HCF, write only common bases and raise them to their smallest exponents. For LCM, write all bases with their largest exponents.";
-    } else if (message.toLowerCase().includes("practice") || message.toLowerCase().includes("q3") || message.toLowerCase().includes("next")) {
-      replyText = "Great, let's look at another example. If we want to find the HCF of 2³ × 5 and 2² × 7, the only common base is 2. The smallest power is 2², so HCF is 4.";
-    }
-
-    return [
-      {
-        sender: "bot",
-        text: replyText,
-        actionChips: ["Explain in Hindi", "Try a similar question", "Show shortcut trick"]
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to send message to tutor");
       }
-    ];
+      return data; // Returns { success: true, chatId: '...', messages: [...] }
+    } catch (err) {
+      console.warn("Failed to communicate with AI tutor backend, falling back to mock reply:", err);
+
+      await delay(600);
+      return {
+        chatId: chatId || "mock-chat-id",
+        messages: [
+          {
+            sender: "bot",
+            text: `I'm having trouble connecting to my brain right now (Error: ${err.message}). Let's review: HCF divides numbers while LCM is divisible by numbers.`,
+            actionChips: ["Explain step-by-step", "Try another question"]
+          }
+        ]
+      };
+    }
   },
 
   async fetchChapters(subjectId) {

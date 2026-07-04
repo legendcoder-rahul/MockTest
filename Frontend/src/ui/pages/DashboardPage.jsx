@@ -1,42 +1,84 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { apiService } from "../../api/apiService";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
-  const recentActivity = useSelector((state) => state.exam.recentActivity);
+  
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    apiService.fetchUserStats()
+      .then(data => {
+        if (isMounted) {
+          setDashboardData(data);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching stats:", err);
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-12 text-on-surface-variant">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+          <p className="text-sm font-bold text-on-surface-variant font-[Poppins]">Loading dashboard statistics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback support if data structure varies
+  const displayName = dashboardData?.user?.username || user?.name || "Rahul";
+  const displayTargetExam = dashboardData?.user?.targetExam || user?.targetExam || "SSC CGL";
+  const displayDaysLeft = dashboardData?.user?.daysLeft || user?.daysLeft || 47;
+  const displayProgress = dashboardData?.user?.overallProgress !== undefined ? dashboardData.user.overallProgress : (user?.overallProgress || 34);
+  const activities = dashboardData?.recentActivity || [];
 
   const stats = [
     {
       title: "Tests Taken",
-      value: "142",
+      value: dashboardData?.stats?.testsTaken ?? 0,
       icon: "assignment",
-      trend: "+12 this week",
+      trend: `+${dashboardData?.stats?.testsThisWeek ?? 0} this week`,
       trendIcon: "trending_up",
       positive: true
     },
     {
       title: "Avg Score",
-      value: "73.4%",
+      value: `${dashboardData?.stats?.avgScore ?? 0}%`,
       icon: "score",
-      trend: "+2.1% overall",
+      trend: "Overall avg",
       trendIcon: "trending_up",
       positive: true
     },
     {
       title: "Accuracy",
-      value: "68.2%",
+      value: `${dashboardData?.stats?.accuracy ?? 0}%`,
       icon: "track_changes",
-      trend: "-1.5% in Maths",
-      trendIcon: "trending_down",
-      positive: false
+      trend: "Overall accuracy",
+      trendIcon: "trending_up",
+      positive: true
     },
     {
       title: "Global Rank",
-      value: "#1,247",
+      value: `#${dashboardData?.stats?.globalRank?.toLocaleString() ?? 1}`,
       icon: "emoji_events",
-      trend: "Top 5%",
+      trend: "vs all users",
       trendIcon: "trending_up",
       positive: true
     }
@@ -49,19 +91,19 @@ export const DashboardPage = () => {
         <div className="relative z-10 flex flex-col justify-between items-start gap-6 max-w-2xl">
           <div>
             <h1 className="text-[32px] leading-[1.3] font-semibold mb-2 tracking-tight font-[Poppins]">
-              Welcome back, {user?.name || "Rahul"}!
+              Welcome back, {displayName}!
             </h1>
             <p className="text-[18px] leading-[1.6] text-primary-fixed-dim mb-6">
-              Your {user?.targetExam || "SSC CGL"} exam is in{" "}
-              <span className="font-bold text-secondary-container">{user?.daysLeft || 47} days</span>. 
-              You've completed {user?.overallProgress || 34}% of the syllabus.
+              Your {displayTargetExam} exam is in{" "}
+              <span className="font-bold text-secondary-container">{displayDaysLeft} days</span>. 
+              You've completed {displayProgress}% of the syllabus.
             </p>
 
             {/* Progress Bar */}
             <div className="w-full bg-primary-foreground/20 rounded-full h-2 mb-6">
               <div
                 className="bg-secondary-container h-2 rounded-full transition-all duration-500"
-                style={{ width: `${user?.overallProgress || 34}%` }}
+                style={{ width: `${displayProgress}%` }}
               ></div>
             </div>
 
@@ -124,9 +166,9 @@ export const DashboardPage = () => {
             Recent Activity
           </h2>
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col gap-4">
-            {recentActivity.length > 0 ? (
+            {activities.length > 0 ? (
               <div className="flex flex-col gap-3">
-                {recentActivity.map((act, idx) => (
+                {activities.map((act, idx) => (
                   <div
                     key={idx}
                     className="flex justify-between items-center p-3 rounded-lg bg-surface-container-low border border-outline-variant"
